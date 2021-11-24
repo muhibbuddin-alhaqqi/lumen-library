@@ -24,12 +24,14 @@ class AuthController extends Controller
 protected function jwt(User $user)
     {
         $payload = [
+            'sub' => $user->email,
             'iss' => "lumen-jwt",
-            'sub' => $user->id,
+            'aud' => 'http://localhost:8080',
             'iat' => time(),
-            'exp' => time() + 60 * 60
+            'exp' => time() + 60 * 60,
         ];
-        return JWT::encode($payload, env('JWT_SECRET'));
+        return JWT::encode($payload, env('JWT_KEY', 'secret'),
+            'HS256');
     }
 
     public function register(Request $request)
@@ -69,7 +71,7 @@ protected function jwt(User $user)
                     'token' => $tokenJwt
                 ])
             ];
-            return response()->json($response, 200);
+            return response()->json($response, 201);
         } catch (QueryException $error) {
             return response()->json([
                 'success' => false,
@@ -80,6 +82,19 @@ protected function jwt(User $user)
 
     public function login(Request $request)
     {
+
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors(),
+            ], 400);
+        }
+
         $email = $request->input('email');
         $password = $request->input('password');
 

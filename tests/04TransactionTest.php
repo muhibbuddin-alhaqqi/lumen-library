@@ -46,7 +46,7 @@ class TransactionTest extends TestCase
                 'exp' => time() + 60 * 60,
                 'role' => 'admin',
             ],
-            env('JWT_KEY', 'secret'),
+            env('JWT_SECRET', 'secret'),
             'HS256'
         );
     }
@@ -135,7 +135,7 @@ class TransactionTest extends TestCase
         $this->beforeEach();
 
         $this->get('/transactions', [
-            'Authorization' => "Bearer {$this->adminData->token}",
+            'authorization' => "Bearer {$this->adminData->token}",
         ]);
 
         $this->assertResponseOk();

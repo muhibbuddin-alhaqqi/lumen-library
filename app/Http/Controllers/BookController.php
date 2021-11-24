@@ -23,7 +23,6 @@ class BookController extends Controller
     // TODO: Create book logic
     public function index(){
         $books = Book::all();
-        // var_dump(count($books));die;
         if ($books){
             if(count($books) != 0){
                 return response()->json([
@@ -32,7 +31,7 @@ class BookController extends Controller
                 'data' => ([
                     'books' => $books
                 ])
-                ], 201);
+                ], 200);
             }else{
                 return response()->json([
                 'success' => false,

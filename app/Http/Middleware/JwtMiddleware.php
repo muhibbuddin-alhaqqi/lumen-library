@@ -18,31 +18,33 @@ class JwtMiddleware
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $token = $request->header('authorization');
+        $token = $request->bearerToken() ?? $request->header('Authorization');
 
         if (!$token) {
             return response()->json([
                 'success' => false,
-                'error' => 'Token required'
+                'message' => 'Token required'
             ], 401);
         }
 
         //TODO: handler jika token tidak sama , signature verification
 
         try {
-            $credential = JWT::decode($token, env('JWT_SECRET'), ['HS256']);
+            $credential = JWT::decode($token, env('JWT_KEY', 'secret'), ['HS256']);
         } catch (ExpiredException $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Provided token is expired'
+                'message' => 'Provided token is expired'
             ], 400);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Error while decoding token'
+                'message' => 'Error while decoding token'
             ], 400);
         }
-        $user = User::find($credential->sub);
+        // $user = User::find($credential->sub);
+        $user = User::where('email', $credential->sub)->first();
+
         if($guard == null){
             $request->auth = $user;
             return $next($request);
@@ -50,7 +52,7 @@ class JwtMiddleware
         if($user->role != $guard){
             return response()->json([
                 'success' => false,
-                'error' => 'Unauthorized'
+                'message' => 'Unauthorized'
             ], 400);
         }
         $request->auth = $user;
